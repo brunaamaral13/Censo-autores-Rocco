@@ -471,8 +471,15 @@
     return "";
   }
 
+  function genderTop(id) {
+    return model.authors
+      .filter((a) => a.gender === id && a.sales > 0)
+      .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
+      .slice(0, 5);
+  }
+
   function statCols(parts) {
-    return `<div class="cols">${parts.map((p) => `<div class="col" style="border-color:${p.color};color:${p.color}">
+    return `<div class="cols">${parts.map((p) => `<div class="col" data-gender="${p.id}" data-label="${esc(p.label)}" style="border-color:${p.color};color:${p.color}">
       ${genderMark(p.id)}
       <strong class="big">${pct(p.authorShare)}</strong>
       <div>${esc(p.label)}</div>
@@ -504,7 +511,7 @@
     const order = [
       { id: "feminino", label: "Feminino", color: "var(--red)" },
       { id: "masculino", label: "Masculino", color: "var(--navy)" },
-      { id: "trans", label: "Trans / não binário", color: "var(--amber)" }
+      { id: "trans", label: "Outros", color: "var(--amber)" }
     ];
     const parts = groupStats(model.authors, (a) => a.gender, order);
     return parts.filter((p) => p.id !== "outros");
@@ -785,15 +792,13 @@
   function originHtml() {
     const parts = originParts();
     return panel("panel-origin", "01 · Origem", "Nacionais e internacionais",
-      `<p class="insight">${sentenceOrigin(parts)}</p>${poster(parts[0], parts[1])}`,
-      "Nacional é quem tem o Brasil como país de origem na maior parte da venda. Cada autor entra uma vez.");
+      `<p class="insight">${sentenceOrigin(parts)}</p>${poster(parts[0], parts[1])}`);
   }
   function genderHtml() {
     const parts = genderParts();
     const shown = parts.filter((p) => p.id !== "outros");
-    return panel("panel-gender", "02 · Gênero", "Feminino, masculino e trans",
-      `<p class="insight">${sentenceGender(parts)}</p>${statCols(shown)}`,
-      "“Mulher trans”, “homem trans” e “não binário” entram em trans / não binário.");
+    return panel("panel-gender", "02 · Gênero", "Feminino, masculino e outros",
+      `<p class="insight">${sentenceGender(parts)}</p>${statCols(shown)}`);
   }
   function lifeHtml() {
     const parts = lifeParts();
@@ -839,9 +844,9 @@
       <div class="map-layout">
         <div>
           ${mapSvg()}
+          <div class="uf-detail" id="ufDetail">${ufDetailHtml()}</div>
           <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
           <div class="chips" id="ufChips">${chipsHtml()}</div>
-          <div class="uf-detail" id="ufDetail">${ufDetailHtml()}</div>
         </div>
         <div>
           <p class="kicker">06 · Destaques</p>
@@ -1011,11 +1016,35 @@
     window.__census = model;
   }
 
-  function hideTip() { tip.hidden = true; }
+  function hideTip() {
+    tip.hidden = true;
+    tip.classList.remove("wide");
+  }
+
+  function placeTip(e, width) {
+    const x = Math.min(e.clientX + 14, window.innerWidth - width - 12);
+    const y = Math.min(e.clientY + 16, window.innerHeight - 220);
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
 
   function onMove(e) {
-    const el = e.target.closest ? e.target.closest("[data-uf]") : null;
-    if (!el || !model) { hideTip(); return; }
+    if (!model || !e.target.closest) { hideTip(); return; }
+    const gender = e.target.closest("[data-gender]");
+    if (gender) {
+      const id = gender.getAttribute("data-gender");
+      const top = genderTop(id);
+      tip.classList.add("wide");
+      tip.hidden = false;
+      tip.innerHTML = `<b>${esc(gender.getAttribute("data-label"))}</b>` + (top.length
+        ? `<ol>${top.map((a, i) => `<li><span>${i + 1}</span><span>${esc(a.name)}</span><span>${num(a.sales)}</span></li>`).join("")}</ol>`
+        : `<span>Sem venda nesta categoria.</span>`);
+      placeTip(e, 300);
+      return;
+    }
+    tip.classList.remove("wide");
+    const el = e.target.closest("[data-uf]");
+    if (!el) { hideTip(); return; }
     const sigla = el.getAttribute("data-uf");
     const st = window.BRAZIL_MAP.states.find((s) => s.sigla === sigla);
     const geo = geoView();
@@ -1024,10 +1053,7 @@
     tip.innerHTML = info && info.authors
       ? `<b>${esc(st.nome)}</b>${noun(info.authors, "autor", "autores")} · ${pct(share(info.sales, geo.nationalSales))} das vendas nacionais`
       : `<b>${esc(st ? st.nome : sigla)}</b>Sem autores neste estado`;
-    const x = Math.min(e.clientX + 14, window.innerWidth - 230);
-    const y = Math.min(e.clientY + 16, window.innerHeight - 70);
-    tip.style.left = x + "px";
-    tip.style.top = y + "px";
+    placeTip(e, 230);
   }
 
   function onInput(e) {
