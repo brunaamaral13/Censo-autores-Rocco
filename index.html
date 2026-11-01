@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Censo de autores · Editora Rocco</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <p class="eyebrow">Editora Rocco - análise demográfica</p>
+      <h1>Quem escreve, e quem vende</h1>
+      <p class="deck">Censo de autores e o potencial de venda do catálogo</p>
+    </div>
+    <div class="import">
+      <p class="file-name" id="fileName">Nenhum arquivo carregado</p>
+      <button type="button" class="btn" id="importBtn">Importar CSV</button>
+      <input id="fileInput" type="file" accept=".csv,text/csv" hidden>
+    </div>
+  </header>
+
+  <section id="drop" class="drop" aria-label="Importar censo">
+    <div class="drop-card">
+      <p class="eyebrow">Comece pelo arquivo</p>
+      <h2>Solte o CSV do censo aqui</h2>
+      <p class="lead">O painel lê o arquivo no navegador e separa autores, vendas, gênero, geração, região e a curva ABC. Nada é enviado para um servidor.</p>
+      <button type="button" class="btn btn-solid" id="importBtnAlt">Escolher arquivo</button>
+      <p class="hint" id="dropHint"></p>
+    </div>
+  </section>
+
+  <main id="dash" hidden></main>
+  <div id="tip" class="tip" hidden></div>
+
+  <script src="brazil-map.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
