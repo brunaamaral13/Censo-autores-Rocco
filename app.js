@@ -472,8 +472,8 @@
       <p class="sales-label">Share de vendas</p>
       ${stack([a, b], "salesShare")}
       <div class="sales-caps">
-        <span><b>${pct(a.salesShare)}</b> · ${num(a.sales)} exemplares</span>
-        <span><b>${pct(b.salesShare)}</b> · ${num(b.sales)} exemplares</span>
+        <span><b>${pct(a.salesShare)}</b> · ${num(a.sales)} exemplares vendidos</span>
+        <span><b>${pct(b.salesShare)}</b> · ${num(b.sales)} exemplares vendidos</span>
       </div>
     </div>`;
   }
@@ -508,7 +508,7 @@
       <div class="sales-block">
         <p class="sales-label">Share de vendas</p>
         <div class="track"><span style="width:${Math.max(p.salesShare * 100, p.sales ? 2 : 0)}%;background:${p.color}"></span></div>
-        <small>${pct(p.salesShare)} · ${num(p.sales)} exemplares</small>
+        <small>${pct(p.salesShare)} · ${num(p.sales)} exemplares vendidos</small>
       </div>
     </div>`).join("")}</div>`;
   }
@@ -674,7 +674,7 @@
   function sentenceOrigin(parts) {
     const n = parts[0];
     const i = parts[1];
-    return `Autores nacionais são ${pct(n.authorShare)} do censo e respondem por ${pct(n.salesShare)} das vendas. Os internacionais são ${pct(i.authorShare)} dos autores e ${pct(i.salesShare)} dos exemplares.`;
+    return `Autores nacionais são ${pct(n.authorShare)} do censo e respondem por ${pct(n.salesShare)} das vendas. Os internacionais são ${pct(i.authorShare)} dos autores e ${pct(i.salesShare)} dos exemplares vendidos.`;
   }
   function sentenceGender(parts) {
     const f = parts.find((p) => p.id === "feminino");
@@ -684,7 +684,7 @@
   function sentenceLife(parts) {
     const vivos = parts.find((p) => p.id === "vivo");
     const mortos = parts.find((p) => p.id === "morto");
-    return `Autores vivos são ${pct(vivos.authorShare)} do censo e ${pct(vivos.salesShare)} das vendas. Os falecidos são ${pct(mortos.authorShare)} dos autores e ${pct(mortos.salesShare)} dos exemplares.`;
+    return `Autores vivos são ${pct(vivos.authorShare)} do censo e ${pct(vivos.salesShare)} das vendas. Os falecidos são ${pct(mortos.authorShare)} dos autores e ${pct(mortos.salesShare)} dos exemplares vendidos.`;
   }
   function sentenceAge(parts) {
     const known = parts.filter((p) => p.id !== "sem");
@@ -739,7 +739,7 @@
     const info = geo.ufs[ui.uf];
     if (!info || !info.authors) return `<h3>${esc(st ? st.nome : ui.uf)}</h3><p>Nenhum autor brasileiro deste estado no arquivo.</p>`;
     return `<h3>${esc(st.nome)} · ${st.sigla}</h3>
-      <p>${noun(info.authors, "autor", "autores")} · ${noun(info.titles, "título", "títulos")} · ${num(info.sales)} exemplares · ${pct(share(info.sales, geo.nationalSales))} das vendas nacionais</p>
+      <p>${noun(info.authors, "autor", "autores")} · ${noun(info.titles, "título", "títulos")} · ${num(info.sales)} exemplares vendidos · ${pct(share(info.sales, geo.nationalSales))} das vendas nacionais</p>
       <ol>${info.ranking.map(([name, sales]) => `<li><span></span><span>${esc(name)}</span><b>${num(sales)}</b></li>`).join("")}</ol>`;
   }
 
@@ -1041,7 +1041,7 @@
       const list = c.ranking.length
         ? `<ol>${c.ranking.map((a) => `<li><span></span><span>${esc(a.name)}<small>${esc(a.pais)}</small></span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
         : "<p class='note'>Nenhum autor com venda neste continente.</p>";
-      return `<h3>${esc(c.name)}</h3><p>${noun(c.authors, "autor", "autores")} · ${noun(c.countries, "país", "países")} · ${num(c.sales)} exemplares · ${pct(c.salesShare)} das vendas internacionais</p>${list}`;
+      return `<h3>${esc(c.name)}</h3><p>${noun(c.authors, "autor", "autores")} · ${noun(c.countries, "país", "países")} · ${num(c.sales)} exemplares vendidos · ${pct(c.salesShare)} das vendas internacionais</p>${list}`;
     }
     const country = pack.countries.find((item) => item.key === ui.world.slice(2));
     if (!country) return "";
@@ -1053,7 +1053,7 @@
     const list = top.length
       ? `<ol>${top.map((a) => `<li><span></span><span>${esc(a.name)}</span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
       : "<p class='note'>Nenhum autor com venda neste país.</p>";
-    return `<h3>${esc(country.name)} · ${esc(continent ? continent.name : "")}</h3><p>${noun(country.authors, "autor", "autores")} · ${noun(country.titles, "título", "títulos")} · ${num(country.sales)} exemplares · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais</p>${list}`;
+    return `<h3>${esc(country.name)} · ${esc(continent ? continent.name : "")}</h3><p>${noun(country.authors, "autor", "autores")} · ${noun(country.titles, "título", "títulos")} · ${num(country.sales)} exemplares vendidos · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais</p>${list}`;
   }
 
   function worldChipsHtml(pack) {
@@ -1111,8 +1111,8 @@
       <div class="abc-grid">
         ${abcChart(pack)}
         <div class="abc-cards">
-          <article class="abc-card head"><span>20% que mais vendem</span><strong class="big">${pct(headShare)}</strong><small>${noun(pack.nHead, "autor", "autores")} · ${num(pack.headSales)} exemplares</small></article>
-          <article class="abc-card tail"><span>Cauda longa</span><strong class="big">${pct(tailShare)}</strong><small>${noun(pack.tail.length, "autor", "autores")} · ${num(pack.tailSales)} exemplares</small></article>
+          <article class="abc-card head"><span>20% que mais vendem</span><strong class="big">${pct(headShare)}</strong><small>${noun(pack.nHead, "autor", "autores")} · ${num(pack.headSales)} exemplares vendidos</small></article>
+          <article class="abc-card tail"><span>Cauda longa</span><strong class="big">${pct(tailShare)}</strong><small>${noun(pack.tail.length, "autor", "autores")} · ${num(pack.tailSales)} exemplares vendidos</small></article>
         </div>
       </div>
       <div class="abc-tools">
@@ -1124,7 +1124,7 @@
       </div>
       <p class="note" id="abcCount"></p>
       <ol class="abc-list" id="abcRows">${abcRowsHtml(pack)}</ol>
-      <p class="note">O ranking é de autores, não de títulos. A venda de cada pessoa é a soma dos exemplares de todos os seus livros. Empates na fronteira dos 20% seguem a ordem alfabética.</p>
+      <p class="note">O ranking é de autores, não de títulos. A venda de cada pessoa é a soma dos exemplares vendidos de todos os seus livros. Empates na fronteira dos 20% seguem a ordem alfabética.</p>
     </section>`;
   }
 
