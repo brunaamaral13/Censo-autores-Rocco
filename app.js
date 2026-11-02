@@ -69,7 +69,9 @@
     tableDir: "desc",
     tablePage: 1,
     uf: null,
-    geoClarice: "com"
+    geoClarice: "com",
+    originTop: null,
+    world: null
   };
   let model = null;
 
@@ -433,20 +435,39 @@
     </div>`;
   }
 
+  function originTop(nacional) {
+    return model.authors
+      .filter((a) => a.nacional === nacional && a.sales > 0)
+      .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
+      .slice(0, 5);
+  }
+
+  function originRankHtml(id) {
+    if (!id) return "";
+    const nacional = id === "nacional";
+    const top = originTop(nacional);
+    const rows = top.length
+      ? `<ol>${top.map((a, i) => `<li><span>${i + 1}</span><span>${esc(a.name)}</span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
+      : `<p class="note">Sem venda nesta categoria.</p>`;
+    return `<p class="kicker">Top 5 · ${nacional ? "Nacionais" : "Internacionais"}</p>${rows}`;
+  }
+
+  function posterSide(part, id, right) {
+    const on = ui.originTop === id;
+    return `<button type="button" class="poster-side${right ? " right" : ""}${on ? " is-on" : ""}" data-origin="${id}" aria-pressed="${on}" style="color:${part.color}">
+        <div class="poster-fig"><strong>${pct(part.authorShare)}</strong></div>
+        <p class="poster-label">${esc(part.label)}</p>
+        <p class="poster-sub">${noun(part.authors, "autor", "autores")}</p>
+      </button>`;
+  }
+
   function poster(a, b) {
     return `<div class="poster">
-      <div class="poster-side" style="color:${a.color}">
-        <div class="poster-fig"><strong>${pct(a.authorShare)}</strong></div>
-        <p class="poster-label">${esc(a.label)}</p>
-        <p class="poster-sub">${noun(a.authors, "autor", "autores")}</p>
-      </div>
+      ${posterSide(a, "nacional", false)}
       ${splitRing(a, b)}
-      <div class="poster-side right" style="color:${b.color}">
-        <div class="poster-fig"><strong>${pct(b.authorShare)}</strong></div>
-        <p class="poster-label">${esc(b.label)}</p>
-        <p class="poster-sub">${noun(b.authors, "autor", "autores")}</p>
-      </div>
+      ${posterSide(b, "internacional", true)}
     </div>
+    <div class="origin-top" id="originTop"${ui.originTop ? "" : " hidden"}>${originRankHtml(ui.originTop)}</div>
     <div class="sales-block">
       <p class="sales-label">Share de vendas</p>
       ${stack([a, b], "salesShare")}
@@ -857,6 +878,222 @@
       "Clarice Lispector foi considerada do Nordeste, onde passou boa parte da vida, mesmo sendo da Ucrânia. Ela tem cidadania brasileira. O mapa pinta o estado quando a cidade de origem é brasileira e reconhecida. O tom segue o lifetime volume, sell-out via Nielsen, daquele estado." + unmapped);
   }
 
+  const CONTINENTS = [
+    { id: "norte", name: "América do Norte", short: "América do Norte", label: [-118, 58], rings: [[ [-168, 71], [-165, 54], [-153, 58], [-140, 60], [-130, 55], [-125, 49], [-124, 40], [-117, 32], [-110, 24], [-105, 22], [-97, 16], [-90, 18], [-86, 22], [-82, 28], [-80, 25], [-81, 31], [-75, 35], [-70, 42], [-67, 45], [-56, 53], [-64, 60], [-80, 74], [-105, 75], [-140, 71], [-168, 71] ]] },
+    { id: "central", name: "América Central e Caribe", short: "Central", label: [-84, 24], rings: [[ [-92, 17], [-90, 16], [-86, 13], [-83, 9], [-80, 8], [-77, 7], [-80, 10], [-84, 13], [-87, 16], [-92, 17] ], [ [-76, 21], [-68, 20], [-68, 17], [-72, 17], [-76, 19] ]] },
+    { id: "sul", name: "América do Sul", short: "América do Sul", label: [-68, -22], rings: [[ [-81, 12], [-77, 8], [-79, 1], [-80, -5], [-76, -15], [-74, -30], [-74, -42], [-72, -52], [-68, -56], [-65, -50], [-62, -40], [-54, -34], [-48, -28], [-40, -22], [-35, -8], [-35, 0], [-48, 2], [-60, 8], [-70, 12], [-81, 12] ]] },
+    { id: "europa", name: "Europa", short: "Europa", label: [15, 64], rings: [[ [-11, 36], [-10, 43], [-8, 52], [-6, 59], [-5, 62], [5, 62], [8, 70], [28, 71], [40, 69], [60, 68], [60, 52], [40, 46], [28, 41], [19, 40], [10, 42], [-1, 43], [-9, 37], [-11, 36] ]] },
+    { id: "africa", name: "África", short: "África", label: [17, 6], rings: [[ [-17, 15], [-17, 21], [-12, 32], [-6, 36], [10, 37], [25, 32], [33, 31], [43, 12], [51, 12], [44, -1], [42, -16], [35, -26], [32, -34], [19, -35], [15, -28], [12, -17], [9, -1], [8, 5], [-5, 5], [-14, 8], [-17, 15] ]] },
+    { id: "asia", name: "Ásia", short: "Ásia", label: [90, 50], rings: [[ [32, 42], [44, 42], [60, 50], [80, 55], [100, 72], [140, 72], [170, 66], [158, 52], [145, 43], [142, 34], [132, 30], [128, 36], [126, 22], [122, 8], [112, 0], [104, -8], [98, 2], [90, 8], [78, 8], [70, 22], [60, 25], [52, 28], [44, 13], [35, 16], [34, 29], [32, 32], [28, 37], [32, 42] ]] },
+    { id: "oceania", name: "Oceania", short: "Oceania", label: [134, -22], rings: [[ [113, -21], [128, -14], [137, -12], [143, -11], [146, -16], [153, -26], [150, -38], [140, -39], [128, -33], [115, -35], [113, -26] ], [ [166, -47], [166, -41], [172, -34], [178, -37], [175, -42], [168, -46] ]] }
+  ];
+
+  const COUNTRY_GEO = {
+    "estados unidos": ["norte", -98, 39],
+    "canada": ["norte", -106, 56],
+    "mexico": ["norte", -102, 23],
+    "panama": ["central", -80.5, 8.5],
+    "honduras": ["central", -86.5, 14.8],
+    "guatemala": ["central", -90.5, 15.5],
+    "republica dominicana": ["central", -70.5, 19],
+    "argentina": ["sul", -64, -34],
+    "chile": ["sul", -71, -35],
+    "equador": ["sul", -78.5, -1.5],
+    "peru": ["sul", -75, -10],
+    "bolivia": ["sul", -65, -17],
+    "reino unido": ["europa", -2, 54],
+    "franca": ["europa", 2, 47],
+    "italia": ["europa", 12.5, 42.5],
+    "irlanda": ["europa", -8, 53.5],
+    "espanha": ["europa", -3.7, 40.2],
+    "russia": ["europa", 37, 56],
+    "suecia": ["europa", 16, 62],
+    "alemanha": ["europa", 10.5, 51],
+    "romenia": ["europa", 25, 46],
+    "polonia": ["europa", 19.5, 52],
+    "paises baixos": ["europa", 5.3, 52.2],
+    "bosnia e herzegovina": ["europa", 17.8, 44],
+    "dinamarca": ["europa", 10, 56],
+    "grecia": ["europa", 22, 39],
+    "portugal": ["europa", -8, 39.5],
+    "austria": ["europa", 14.5, 47.5],
+    "ucrania": ["europa", 31, 49],
+    "noruega": ["europa", 9, 62],
+    "belgica": ["europa", 4.4, 50.5],
+    "suica": ["europa", 8.2, 46.8],
+    "china": ["asia", 104, 35],
+    "india": ["asia", 79, 22],
+    "israel": ["asia", 35, 31.5],
+    "coreia do sul": ["asia", 128, 36.5],
+    "filipinas": ["asia", 122, 12],
+    "ira": ["asia", 53, 32],
+    "vietna": ["asia", 108, 16],
+    "malasia": ["asia", 102, 4],
+    "japao": ["asia", 138, 36],
+    "bangladesh": ["asia", 90, 24],
+    "turquia": ["asia", 35, 39],
+    "nigeria": ["africa", 8, 10],
+    "malawi": ["africa", 34, -13],
+    "egito": ["africa", 30, 27],
+    "gana": ["africa", -1.2, 8],
+    "africa do sul": ["africa", 25, -29],
+    "marrocos": ["africa", -6, 32],
+    "mocambique": ["africa", 35, -18],
+    "zimbabue": ["africa", 29.5, -19],
+    "argelia": ["africa", 3, 28],
+    "sudao do sul": ["africa", 30, 7],
+    "etiopia": ["africa", 40, 9],
+    "australia": ["oceania", 134, -25],
+    "nova zelandia": ["oceania", 174, -41],
+    "polinesia francesa": ["oceania", -149.5, -17.5]
+  };
+
+  function projectWorld(lon, lat) {
+    return [(lon + 180) / 360 * 960, (90 - lat) / 180 * 480];
+  }
+
+  function worldRing(ring) {
+    return ring.map((p, i) => {
+      const [x, y] = projectWorld(p[0], p[1]);
+      return (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+    }).join("") + "Z";
+  }
+
+  function worldPack() {
+    const intl = model.authors.filter((a) => !a.nacional);
+    const intlSales = intl.reduce((s, a) => s + a.sales, 0);
+    const byCountry = new Map();
+    const unknown = new Map();
+    intl.forEach((a) => {
+      const key = fold(a.pais).toLowerCase();
+      const geo = COUNTRY_GEO[key];
+      if (!geo) {
+        unknown.set(a.pais || "Não informado", (unknown.get(a.pais || "Não informado") || 0) + 1);
+        return;
+      }
+      let slot = byCountry.get(key);
+      if (!slot) {
+        slot = { key, name: a.pais, continent: geo[0], lon: geo[1], lat: geo[2], authors: 0, sales: 0, titles: 0, people: [] };
+        byCountry.set(key, slot);
+      }
+      slot.authors += 1;
+      slot.sales += a.sales;
+      slot.titles += a.titles;
+      slot.people.push(a);
+    });
+    const countries = [...byCountry.values()].sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"));
+    const continents = CONTINENTS.map((c) => {
+      const group = countries.filter((country) => country.continent === c.id);
+      const authors = group.reduce((s, country) => s + country.authors, 0);
+      const sales = group.reduce((s, country) => s + country.sales, 0);
+      const ranking = group
+        .flatMap((country) => country.people)
+        .filter((a) => a.sales > 0)
+        .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
+        .slice(0, 5)
+        .map((a) => ({ name: a.name, sales: a.sales, pais: a.pais }));
+      return {
+        id: c.id,
+        name: c.name,
+        rings: c.rings,
+        short: c.short,
+        label: c.label,
+        authors,
+        sales,
+        countries: group.length,
+        authorShare: share(authors, intl.length),
+        salesShare: share(sales, intlSales),
+        ranking
+      };
+    });
+    return {
+      intlAuthors: intl.length,
+      intlSales,
+      countries,
+      continents,
+      unknown: [...unknown.entries()].sort((a, b) => b[1] - a[1])
+    };
+  }
+
+  function worldSvg(pack) {
+    const maxLand = Math.max(...pack.continents.map((c) => c.sales), 0);
+    const maxDot = Math.max(...pack.countries.map((c) => c.sales), 0);
+    const lands = pack.continents.map((c) => {
+      const on = ui.world === "c:" + c.id;
+      const fill = c.authors ? heat(c.sales, maxLand) : "#1c283c";
+      const [x, y] = projectWorld(c.label[0], c.label[1]);
+      return `<path class="continent${on ? " is-on" : ""}" data-world="c:${c.id}" tabindex="0" role="button" aria-label="${esc(c.name)}" aria-pressed="${on}" fill="${fill}" d="${c.rings.map(worldRing).join(" ")}"></path><text class="world-label" text-anchor="middle" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${esc(c.short)}</text>`;
+    }).join("");
+    const dots = pack.countries.map((c) => {
+      const on = ui.world === "p:" + c.key;
+      const [x, y] = projectWorld(c.lon, c.lat);
+      const r = (3.2 + 4.8 * Math.sqrt(maxDot ? c.sales / maxDot : 0)).toFixed(1);
+      return `<circle class="country-dot${on ? " is-on" : ""}" data-world="p:${esc(c.key)}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" tabindex="0" role="button" aria-label="${esc(c.name)}" aria-pressed="${on}"></circle>`;
+    }).join("");
+    return `<svg class="world" viewBox="0 0 960 480" role="img" aria-label="Mapa por continente dos autores internacionais">${lands}${dots}</svg>`;
+  }
+
+  function worldDetailHtml(pack) {
+    if (!ui.world) return "<p>Escolha um continente ou um país para ver autores e vendas.</p>";
+    if (ui.world.startsWith("c:")) {
+      const c = pack.continents.find((item) => item.id === ui.world.slice(2));
+      if (!c) return "";
+      const list = c.ranking.length
+        ? `<ol>${c.ranking.map((a) => `<li><span></span><span>${esc(a.name)}<small>${esc(a.pais)}</small></span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
+        : "<p class='note'>Nenhum autor com venda neste continente.</p>";
+      return `<h3>${esc(c.name)}</h3><p>${noun(c.authors, "autor", "autores")} · ${noun(c.countries, "país", "países")} · ${num(c.sales)} exemplares · ${pct(c.salesShare)} das vendas internacionais</p>${list}`;
+    }
+    const country = pack.countries.find((item) => item.key === ui.world.slice(2));
+    if (!country) return "";
+    const continent = pack.continents.find((item) => item.id === country.continent);
+    const top = country.people
+      .filter((a) => a.sales > 0)
+      .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
+      .slice(0, 5);
+    const list = top.length
+      ? `<ol>${top.map((a) => `<li><span></span><span>${esc(a.name)}</span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
+      : "<p class='note'>Nenhum autor com venda neste país.</p>";
+    return `<h3>${esc(country.name)} · ${esc(continent ? continent.name : "")}</h3><p>${noun(country.authors, "autor", "autores")} · ${noun(country.titles, "título", "títulos")} · ${num(country.sales)} exemplares · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais</p>${list}`;
+  }
+
+  function worldChipsHtml(pack) {
+    return pack.countries.map((c) => {
+      const id = "p:" + c.key;
+      const on = ui.world === id;
+      return `<button type="button" class="chip${on ? " is-on" : ""}" data-world="${esc(id)}" aria-pressed="${on}"><b>${esc(c.name)}</b><small>${noun(c.authors, "autor", "autores")} · ${pct(share(c.sales, pack.intlSales))} das vendas</small></button>`;
+    }).join("");
+  }
+
+  function worldHtml() {
+    const pack = worldPack();
+    const lead = pack.continents.slice().sort((a, b) => b.sales - a.sales)[0];
+    const cards = pack.continents.map((b) => `<article class="region">
+      <div class="region-top"><h3>${esc(b.name)}</h3><span>${pct(b.authorShare)} dos autores internacionais<br>${pct(b.salesShare)} das vendas internacionais</span></div>
+      <div class="twin">
+        <div class="track"><span class="navy" style="width:${Math.max(b.authorShare * 100, b.authors ? 1.5 : 0)}%"></span></div>
+        <div class="track thin"><span class="red" style="width:${Math.max(b.salesShare * 100, b.sales ? 1.5 : 0)}%"></span></div>
+      </div>
+      ${b.ranking.length ? `<ol>${b.ranking.map((a, i) => `<li><span>${i + 1}</span><span>${esc(a.name)}<small>${esc(a.pais)}</small></span><b>${num(a.sales)}</b></li>`).join("")}</ol>` : "<p class='note'>Nenhum autor internacional com venda neste continente.</p>"}
+    </article>`).join("");
+    const unknown = pack.unknown.length ? ` Origem sem país reconhecido: ${pack.unknown.map(([name, n]) => esc(name) + " (" + n + ")").join(", ")}.` : "";
+    return panel("panel-world", "07 · Mundo", "Onde estão os autores internacionais",
+      `<p class="insight">${esc(lead.name)} concentra ${pct(lead.authorShare)} dos autores internacionais e ${pct(lead.salesShare)} das vendas internacionais. Há autores em ${pack.countries.length} países.</p>
+      <div class="map-layout">
+        <div>
+          ${worldSvg(pack)}
+          <div class="uf-detail" id="worldDetail">${worldDetailHtml(pack)}</div>
+          <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
+          <div class="chips" id="worldChips">${worldChipsHtml(pack)}</div>
+        </div>
+        <div>
+          <p class="kicker">Destaques</p>
+          <h2 style="font-family:var(--narrow);letter-spacing:-0.04em;font-size:32px;margin:4px 0 10px">Quem mais vende em cada continente</h2>
+          <div class="regions">${cards}</div>
+        </div>
+      </div>`,
+      "Cada autor internacional entra no país que concentra a maior parte da venda. O continente acompanha esse país. A cor do mapa segue o lifetime volume, sell-out via Nielsen. O ponto marca um país em que a editora tem autor." + unknown);
+  }
+
   function abcHtml() {
     const pack = abcPack();
     const headShare = share(pack.headSales, pack.total);
@@ -864,7 +1101,7 @@
     const recorte = ui.abcScope === "nacionais" ? "No recorte nacional, " : "";
     return `<section class="panel" id="panel-abc">
       <div class="abc-top">
-        <header class="panel-head"><p class="kicker">07 · Concentração</p><h2>Curva ABC</h2></header>
+        <header class="panel-head"><p class="kicker">08 · Concentração</p><h2>Curva ABC</h2></header>
         <div class="scope" role="group" aria-label="Recorte da curva">
           <button type="button" data-scope="todos" class="${ui.abcScope === "todos" ? "is-on" : ""}" aria-pressed="${ui.abcScope === "todos"}">Catálogo inteiro</button>
           <button type="button" data-scope="nacionais" class="${ui.abcScope === "nacionais" ? "is-on" : ""}" aria-pressed="${ui.abcScope === "nacionais"}">Só nacionais</button>
@@ -931,7 +1168,7 @@
 
   function tableHtml() {
     return `<section class="panel" id="panel-table">
-      <header class="panel-head"><p class="kicker">08 · Arquivo</p><h2>Todas as colunas</h2></header>
+      <header class="panel-head"><p class="kicker">09 · Arquivo</p><h2>Todas as colunas</h2></header>
       <div class="table-tools">
         <p class="note" id="tableCount" style="margin:0"></p>
         <input id="q" type="search" placeholder="Buscar em qualquer coluna" value="${esc(ui.tableQuery)}" aria-label="Buscar na tabela">
@@ -990,6 +1227,30 @@
       : `${noun(n, "autor", "autores")} na cauda longa`;
   }
 
+  function paintOriginTop() {
+    const box = document.getElementById("originTop");
+    if (box) {
+      box.hidden = !ui.originTop;
+      box.innerHTML = originRankHtml(ui.originTop);
+    }
+    document.querySelectorAll("[data-origin]").forEach((el) => {
+      const on = el.getAttribute("data-origin") === ui.originTop;
+      el.classList.toggle("is-on", on);
+      el.setAttribute("aria-pressed", String(on));
+    });
+  }
+
+  function paintWorldSelection() {
+    const pack = worldPack();
+    document.querySelectorAll("[data-world]").forEach((el) => {
+      const on = el.getAttribute("data-world") === ui.world;
+      el.classList.toggle("is-on", on);
+      if (el.hasAttribute("aria-pressed")) el.setAttribute("aria-pressed", String(on));
+    });
+    const detail = document.getElementById("worldDetail");
+    if (detail) detail.innerHTML = worldDetailHtml(pack);
+  }
+
   function paintMapSelection() {
     document.querySelectorAll("[data-uf]").forEach((el) => {
       const on = el.getAttribute("data-uf") === ui.uf;
@@ -1002,7 +1263,7 @@
 
   function renderAll() {
     const pack = abcPack();
-    dash.innerHTML = kpisHtml(pack) + `<div class="split">${originHtml()}${genderHtml()}</div><div class="split">${lifeHtml()}${ageHtml()}</div>` + mapHtml() + abcHtml() + tableHtml();
+    dash.innerHTML = kpisHtml(pack) + `<div class="split">${originHtml()}${genderHtml()}</div><div class="split">${lifeHtml()}${ageHtml()}</div>` + mapHtml() + worldHtml() + abcHtml() + tableHtml();
     paintTable();
     paintAbcCount(pack);
     if (!dash.dataset.bound) {
@@ -1043,6 +1304,24 @@
       return;
     }
     tip.classList.remove("wide");
+    const place = e.target.closest("[data-world]");
+    if (place) {
+      const id = place.getAttribute("data-world");
+      const pack = worldPack();
+      let html = "";
+      if (id.startsWith("c:")) {
+        const c = pack.continents.find((item) => item.id === id.slice(2));
+        if (c) html = `<b>${esc(c.name)}</b>${noun(c.authors, "autor", "autores")} · ${pct(c.salesShare)} das vendas internacionais`;
+      } else {
+        const country = pack.countries.find((item) => item.key === id.slice(2));
+        if (country) html = `<b>${esc(country.name)}</b>${noun(country.authors, "autor", "autores")} · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais`;
+      }
+      if (!html) { hideTip(); return; }
+      tip.hidden = false;
+      tip.innerHTML = html;
+      placeTip(e, 260);
+      return;
+    }
     const el = e.target.closest("[data-uf]");
     if (!el) { hideTip(); return; }
     const sigla = el.getAttribute("data-uf");
@@ -1113,6 +1392,20 @@
       replaceAbc();
       return;
     }
+    const origin = e.target.closest("[data-origin]");
+    if (origin) {
+      const id = origin.getAttribute("data-origin");
+      ui.originTop = ui.originTop === id ? null : id;
+      paintOriginTop();
+      return;
+    }
+    const place = e.target.closest("[data-world]");
+    if (place) {
+      const id = place.getAttribute("data-world");
+      ui.world = ui.world === id ? null : id;
+      paintWorldSelection();
+      return;
+    }
     const uf = e.target.closest("[data-uf]");
     if (uf) {
       const sigla = uf.getAttribute("data-uf");
@@ -1122,6 +1415,13 @@
   }
 
   function onKey(e) {
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".continent, .country-dot")) {
+      e.preventDefault();
+      const id = e.target.getAttribute("data-world");
+      ui.world = ui.world === id ? null : id;
+      paintWorldSelection();
+      return;
+    }
     if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".uf")) {
       e.preventDefault();
       const sigla = e.target.getAttribute("data-uf");
@@ -1140,6 +1440,8 @@
     try {
       model = build(text);
       ui.uf = null;
+      ui.originTop = null;
+      ui.world = null;
       ui.geoClarice = "com";
       geoMemo = null;
       ui.tablePage = 1;

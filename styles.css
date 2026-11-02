@@ -198,7 +198,32 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 77, 87
 .insight { margin: 0 0 16px; font-size: 15px; color: #d5e2f7; }
 
 .poster { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: center; }
-.poster-side { text-align: right; }
+.poster-side {
+  text-align: right;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 8px 10px;
+  width: 100%;
+}
+.poster-side.is-on { background: rgba(255, 255, 255, 0.04); border-color: var(--line); }
+.origin-top {
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.origin-top ol { list-style: none; margin: 8px 0 0; padding: 0; }
+.origin-top li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 14px;
+}
+.origin-top li b { font-variant-numeric: tabular-nums; }
+.origin-top .note { margin: 8px 0 0; }
 .poster-fig { display: flex; align-items: flex-end; gap: 6px; color: inherit; justify-content: flex-end; }
 .poster-side.right { text-align: left; }
 .poster-side.right .poster-fig { justify-content: flex-start; }
@@ -328,6 +353,15 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 77, 87
 .uf-detail h3 { font-size: 16px; }
 .uf-detail ol { margin: 8px 0 0; padding-left: 18px; }
 .uf-detail li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+.uf-detail li small, .region li small { display: block; color: var(--muted); font-size: 11px; font-weight: 600; }
+.world { width: 100%; height: auto; display: block; }
+.continent { stroke: rgba(126, 224, 255, 0.28); stroke-width: 1.2; cursor: pointer; }
+.continent:hover, .continent.is-on { stroke: var(--navy); stroke-width: 2.2; }
+.continent:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.6; }
+.world-label { fill: #d5e2f7; font-size: 15px; font-family: var(--sans); text-anchor: middle; pointer-events: none; }
+.country-dot { fill: var(--navy); stroke: #061018; stroke-width: 1.4; cursor: pointer; }
+.country-dot.is-on, .country-dot:hover { fill: #fff; stroke: var(--navy); stroke-width: 2.4; }
+.country-dot:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.8; }
 .regions { display: flex; flex-direction: column; gap: 12px; }
 .region { border-top: 1px solid var(--line); padding-top: 10px; }
 .region-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
