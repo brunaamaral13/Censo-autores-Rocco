@@ -2,7 +2,6 @@
   "use strict";
 
   const REF = { y: 2026, m: 11, d: 1 };
-  const CSV_NAME = "Censo_Autores_Rocco_Atualizado_Expandido_48.csv";
   const PAGE = 20;
   const REGIONS = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"];
   const intFmt = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
@@ -1481,10 +1480,5 @@
     if (e.dataTransfer && e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
   });
 
-  fetch(CSV_NAME, { cache: "no-store" }).then((res) => {
-    if (!res.ok) throw new Error("sem arquivo");
-    return res.text();
-  }).then((text) => loadText(text, CSV_NAME)).catch(() => {
-    dropHint.textContent = "Escolha o CSV do censo. Se abrir o HTML direto do disco, o arquivo da pasta não carrega sozinho.";
-  });
+  dropHint.textContent = "A visualização abre somente depois de importar o CSV.";
 })();
