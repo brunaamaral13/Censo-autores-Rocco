@@ -317,6 +317,7 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 77, 87
 .band-legend { display: flex; gap: 16px; color: var(--muted); font-size: 12px; margin-bottom: 10px; }
 
 .map-layout { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; align-items: start; }
+.map-layout.world-layout { grid-template-columns: minmax(0, 720px); }
 .brazil { width: 100%; height: auto; display: block; }
 .uf { stroke: rgba(126, 224, 255, 0.28); stroke-width: 1.2; cursor: pointer; }
 .uf:hover, .uf.is-on { stroke: var(--navy); stroke-width: 2.4; }
@@ -354,7 +355,7 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 77, 87
 .uf-detail ol { margin: 8px 0 0; padding-left: 18px; }
 .uf-detail li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
 .uf-detail li small, .region li small { display: block; color: var(--muted); font-size: 11px; font-weight: 600; }
-.world { width: 100%; height: auto; display: block; }
+.world { width: 100%; max-width: 720px; height: auto; display: block; }
 .continent { stroke: rgba(126, 224, 255, 0.28); stroke-width: 1.2; cursor: pointer; }
 .continent:hover, .continent.is-on { stroke: var(--navy); stroke-width: 2.2; }
 .continent:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.6; }

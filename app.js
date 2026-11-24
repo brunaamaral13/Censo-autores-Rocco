@@ -23,19 +23,25 @@
     "santa catarina": "SC", "sao paulo": "SP", sergipe: "SE", tocantins: "TO"
   };
   const CITY_UF = {
+    amparo: "SP",
     belem: "PA",
     "bernardino de campos": "SP",
     "boa vista": "RR",
+    bocaiuva: "MG",
     brasilia: "DF",
     "campina grande": "PB",
+    campinas: "SP",
     "cruz alta": "RS",
+    cuiaba: "MT",
     curitiba: "PR",
     fortaleza: "CE",
     goiania: "GO",
+    "governador valadares": "MG",
     ipueiras: "CE",
     maranguape: "CE",
     natal: "RN",
     niteroi: "RJ",
+    "novo oriente": "CE",
     "ouro preto": "MG",
     pirenopolis: "GO",
     "porto alegre": "RS",
@@ -48,10 +54,13 @@
     "sao jose de espinharas": "PB",
     "sao jose do rio preto": "SP",
     "sao leopoldo": "RS",
+    "sao luis": "MA",
     "sao paulo": "SP",
+    "sao vicente": "SP",
     marilia: "SP",
     "paraguacu paulista": "SP",
     umuarama: "PR",
+    uruguaiana: "RS",
     cascadura: "RJ",
     araguari: "MG",
     "belo horizonte": "MG",
@@ -1066,28 +1075,15 @@
   function worldHtml() {
     const pack = worldPack();
     const lead = pack.continents.slice().sort((a, b) => b.sales - a.sales)[0];
-    const cards = pack.continents.map((b) => `<article class="region">
-      <div class="region-top"><h3>${esc(b.name)}</h3><span>${pct(b.authorShare)} dos autores internacionais<br>${pct(b.salesShare)} das vendas internacionais</span></div>
-      <div class="twin">
-        <div class="track"><span class="navy" style="width:${Math.max(b.authorShare * 100, b.authors ? 1.5 : 0)}%"></span></div>
-        <div class="track thin"><span class="red" style="width:${Math.max(b.salesShare * 100, b.sales ? 1.5 : 0)}%"></span></div>
-      </div>
-      ${b.ranking.length ? `<ol>${b.ranking.map((a, i) => `<li><span>${i + 1}</span><span>${esc(a.name)}<small>${esc(a.pais)}</small></span><b>${num(a.sales)}</b></li>`).join("")}</ol>` : "<p class='note'>Nenhum autor internacional com venda neste continente.</p>"}
-    </article>`).join("");
     const unknown = pack.unknown.length ? ` Origem sem país reconhecido: ${pack.unknown.map(([name, n]) => esc(name) + " (" + n + ")").join(", ")}.` : "";
     return panel("panel-world", "07 · Mundo", "Onde estão os autores internacionais",
       `<p class="insight">${esc(lead.name)} concentra ${pct(lead.authorShare)} dos autores internacionais e ${pct(lead.salesShare)} das vendas internacionais. Há autores em ${pack.countries.length} países.</p>
-      <div class="map-layout">
+      <div class="map-layout world-layout">
         <div>
           ${worldSvg(pack)}
           <div class="uf-detail" id="worldDetail">${worldDetailHtml(pack)}</div>
           <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
           <div class="chips" id="worldChips">${worldChipsHtml(pack)}</div>
-        </div>
-        <div>
-          <p class="kicker">Destaques</p>
-          <h2 style="font-family:var(--narrow);letter-spacing:-0.04em;font-size:32px;margin:4px 0 10px">Quem mais vende em cada continente</h2>
-          <div class="regions">${cards}</div>
         </div>
       </div>`,
       "Cada autor internacional entra no país que concentra a maior parte da venda. O continente acompanha esse país. A cor do mapa segue o lifetime volume, sell-out via Nielsen. O ponto marca um país em que a editora tem autor." + unknown);
