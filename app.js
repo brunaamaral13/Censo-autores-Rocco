@@ -1041,13 +1041,17 @@
     return `<svg class="world" viewBox="0 0 960 480" role="img" aria-label="Mapa por continente dos autores internacionais">${lands}${dots}</svg>`;
   }
 
+  function worldRankItem(name, sales, place) {
+    return `<li><span>${esc(name)}${place ? `<small>${esc(place)}</small>` : ""}</span><span class="world-sales"><b>${num(sales)}</b><small>exemplares vendidos</small></span></li>`;
+  }
+
   function worldDetailHtml(pack) {
     if (!ui.world) return "";
     if (ui.world.startsWith("c:")) {
       const c = pack.continents.find((item) => item.id === ui.world.slice(2));
       if (!c) return "";
       const list = c.ranking.length
-        ? `<ol>${c.ranking.map((a) => `<li><span></span><span>${esc(a.name)}<small>${esc(a.pais)}</small></span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
+        ? `<ol>${c.ranking.map((a) => worldRankItem(a.name, a.sales, a.pais)).join("")}</ol>`
         : "<p class='note'>Nenhum autor com venda neste continente.</p>";
       return `<h3>${esc(c.name)}</h3><p>${noun(c.authors, "autor", "autores")} · ${noun(c.countries, "país", "países")} · ${num(c.sales)} exemplares vendidos · ${pct(c.salesShare)} das vendas internacionais</p>${list}`;
     }
@@ -1059,24 +1063,25 @@
       .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
       .slice(0, 5);
     const list = top.length
-      ? `<ol>${top.map((a) => `<li><span></span><span>${esc(a.name)}</span><b>${num(a.sales)}</b></li>`).join("")}</ol>`
+      ? `<ol>${top.map((a) => worldRankItem(a.name, a.sales)).join("")}</ol>`
       : "<p class='note'>Nenhum autor com venda neste país.</p>";
     return `<h3>${esc(country.name)} · ${esc(continent ? continent.name : "")}</h3><p>${noun(country.authors, "autor", "autores")} · ${noun(country.titles, "título", "títulos")} · ${num(country.sales)} exemplares vendidos · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais</p>${list}`;
   }
 
   function worldChipCountries(pack) {
-    if (!ui.world) return pack.countries;
+    if (!ui.world) return [];
     if (ui.world.startsWith("c:")) {
       const id = ui.world.slice(2);
       return pack.countries.filter((c) => c.continent === id);
     }
     const country = pack.countries.find((item) => item.key === ui.world.slice(2));
-    if (!country) return pack.countries;
+    if (!country) return [];
     return pack.countries.filter((c) => c.continent === country.continent);
   }
 
   function worldChipsHtml(pack) {
     const list = worldChipCountries(pack);
+    if (!ui.world) return "";
     if (!list.length) return `<p class="note">Nenhum país com autor neste continente.</p>`;
     return list.map((c) => {
       const id = "p:" + c.key;
@@ -1098,7 +1103,7 @@
             <div class="world-detail" id="worldDetail"${ui.world ? "" : " hidden"}>${worldDetailHtml(pack)}</div>
           </div>
           <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
-          <div class="chips" id="worldChips">${worldChipsHtml(pack)}</div>
+          <div class="chips" id="worldChips"${ui.world ? "" : " hidden"}>${worldChipsHtml(pack)}</div>
         </div>
       </div>`,
       "Cada autor internacional entra no país que concentra a maior parte da venda. O continente acompanha esse país. A cor do mapa segue o lifetime volume, sell-out via Nielsen. O ponto marca um país em que a editora tem autor." + unknown);
@@ -1259,7 +1264,11 @@
       detail.hidden = !html;
     }
     const chips = document.getElementById("worldChips");
-    if (chips) chips.innerHTML = worldChipsHtml(pack);
+    if (chips) {
+      const html = worldChipsHtml(pack);
+      chips.innerHTML = html;
+      chips.hidden = !ui.world;
+    }
     document.querySelectorAll("#panel-world [data-world]").forEach((el) => {
       const on = el.getAttribute("data-world") === ui.world;
       el.classList.toggle("is-on", on);
