@@ -741,21 +741,24 @@
   }
 
   function ufDetailHtml() {
-    if (!ui.uf) return "<p>Escolha um estado no mapa para ver autores e vendas.</p>";
+    if (!ui.uf) return "";
     const st = window.BRAZIL_MAP.states.find((s) => s.sigla === ui.uf);
     const geo = geoView();
     const info = geo.ufs[ui.uf];
-    if (!info || !info.authors) return `<h3>${esc(st ? st.nome : ui.uf)}</h3><p>Nenhum autor brasileiro deste estado no arquivo.</p>`;
-    return `<h3>${esc(st.nome)} · ${st.sigla}</h3>
+    const title = st ? `${st.nome} · ${st.sigla}` : ui.uf;
+    if (!info || !info.authors) return `<h3>${esc(title)}</h3><p>Nenhum autor brasileiro deste estado no arquivo.</p>`;
+    return `<h3>${esc(title)}</h3>
       <p>${noun(info.authors, "autor", "autores")} · ${noun(info.titles, "título", "títulos")} · ${num(info.sales)} exemplares vendidos · ${pct(share(info.sales, geo.nationalSales))} das vendas nacionais</p>
-      <ol>${info.ranking.map(([name, sales]) => `<li><span></span><span>${esc(name)}</span><b>${num(sales)}</b></li>`).join("")}</ol>`;
+      <ol>${info.ranking.map(([name, sales]) => worldRankItem(name, sales)).join("")}</ol>`;
   }
 
   function chipsHtml() {
+    if (!ui.uf) return "";
     const map = window.BRAZIL_MAP;
     const geo = geoView();
+    const region = UF_REGION[ui.uf];
     return Object.entries(geo.ufs)
-      .filter(([, u]) => u.authors > 0)
+      .filter(([sigla, u]) => u.authors > 0 && UF_REGION[sigla] === region)
       .sort((a, b) => b[1].sales - a[1].sales)
       .map(([sigla, u]) => {
         const st = map.states.find((s) => s.sigla === sigla);
@@ -870,20 +873,20 @@
         <button type="button" data-clarice="sem" class="${withClarice ? "" : "is-on"}" aria-pressed="${!withClarice}">Sem Clarice Lispector</button>
       </div>
       <p class="insight">${cut}${esc(lead.name)} concentra ${pct(lead.authorShare)} dos autores nacionais e ${pct(lead.salesShare)} das vendas nacionais. Há autores em ${statesWithAuthors()} unidades da federação.</p>
-      <div class="map-layout">
-        <div>
+      <div class="brazil-layout">
+        <div class="map-scale brazil-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
+        <div class="chips" id="ufChips"${ui.uf ? "" : " hidden"}>${chipsHtml()}</div>
+        <div class="brazil-stage">
           ${mapSvg()}
-          <div class="uf-detail" id="ufDetail">${ufDetailHtml()}</div>
-          <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
-          <div class="chips" id="ufChips">${chipsHtml()}</div>
+          <div class="world-detail brazil-detail" id="ufDetail"${ui.uf ? "" : " hidden"}>${ufDetailHtml()}</div>
         </div>
-        <div>
+        <div class="brazil-regions">
           <p class="kicker">06 · Destaques</p>
-          <h2 style="font-family:var(--narrow);letter-spacing:-0.04em;font-size:32px;margin:4px 0 10px">Quem mais vende em cada região</h2>
+          <h2>Quem mais vende em cada região</h2>
           <div class="regions">${regions}</div>
         </div>
       </div>`,
-      "Clarice Lispector foi considerada do Nordeste, onde passou boa parte da vida, mesmo sendo da Ucrânia. Ela tem cidadania brasileira. O mapa pinta o estado quando a cidade de origem é brasileira e reconhecida. O tom segue o lifetime volume, sell-out via Nielsen, daquele estado." + unmapped);
+      "Clarice Lispector foi considerada do Nordeste, onde passou boa parte da vida, mesmo sendo da Ucrânia. Ela tem cidadania brasileira. O mapa pinta o estado quando a cidade de origem é brasileira e reconhecida. O tom segue o lifetime volume, sell-out via Nielsen, daquele estado. Clique no estado para ver os autores; clique de novo para fechar." + unmapped);
   }
 
   const CONTINENTS = [
@@ -1277,13 +1280,22 @@
   }
 
   function paintMapSelection() {
-    document.querySelectorAll("[data-uf]").forEach((el) => {
+    const detail = document.getElementById("ufDetail");
+    if (detail) {
+      const html = ufDetailHtml();
+      detail.innerHTML = html;
+      detail.hidden = !ui.uf;
+    }
+    const chips = document.getElementById("ufChips");
+    if (chips) {
+      chips.innerHTML = chipsHtml();
+      chips.hidden = !ui.uf;
+    }
+    document.querySelectorAll("#panel-map [data-uf]").forEach((el) => {
       const on = el.getAttribute("data-uf") === ui.uf;
       el.classList.toggle("is-on", on);
       if (el.hasAttribute("aria-pressed")) el.setAttribute("aria-pressed", String(on));
     });
-    const detail = document.getElementById("ufDetail");
-    if (detail) detail.innerHTML = ufDetailHtml();
   }
 
   function renderAll() {

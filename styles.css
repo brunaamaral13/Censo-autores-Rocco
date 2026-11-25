@@ -319,7 +319,34 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .map-layout { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; align-items: start; }
 .map-layout.world-layout { grid-template-columns: minmax(0, 1fr); }
 .world-layout > div { width: 100%; margin: 0 auto; }
+.brazil-layout { display: flex; flex-direction: column; gap: 0; width: 100%; }
+.brazil-scale { margin: 0 0 10px; }
+.brazil-layout .chips { margin: 0 0 12px; }
+.brazil-stage {
+  position: relative;
+  width: min(100%, 720px);
+  margin: 0 auto;
+}
 .brazil { width: 100%; height: auto; display: block; }
+.brazil-detail { right: 12px; top: 12px; }
+.brazil-regions {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.brazil-regions h2 {
+  font-family: var(--narrow);
+  letter-spacing: -0.04em;
+  font-size: clamp(28px, 3vw, 32px);
+  margin: 4px 0 14px;
+  line-height: 1;
+}
+.brazil-regions .regions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 20px;
+}
+.brazil-regions .region { border-top: 0; padding-top: 0; }
 .uf { stroke: rgba(0, 204, 255, 0.28); stroke-width: 1.2; cursor: pointer; }
 .uf:hover, .uf.is-on { stroke: var(--navy); stroke-width: 2.4; }
 .uf:focus-visible { outline: none; stroke: var(--navy); stroke-width: 3; }
