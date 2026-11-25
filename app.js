@@ -1098,12 +1098,12 @@
       `<p class="insight">${esc(lead.name)} concentra ${pct(lead.authorShare)} dos autores internacionais e ${pct(lead.salesShare)} das vendas internacionais. Há autores em ${pack.countries.length} países.</p>
       <div class="map-layout world-layout">
         <div>
+          <div class="map-scale world-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
+          <div class="chips" id="worldChips"${ui.world ? "" : " hidden"}>${worldChipsHtml(pack)}</div>
           <div class="world-stage">
             ${worldSvg(pack)}
             <div class="world-detail" id="worldDetail"${ui.world ? "" : " hidden"}>${worldDetailHtml(pack)}</div>
           </div>
-          <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
-          <div class="chips" id="worldChips"${ui.world ? "" : " hidden"}>${worldChipsHtml(pack)}</div>
         </div>
       </div>`,
       "Cada autor internacional entra no país que concentra a maior parte da venda. O continente acompanha esse país. A cor do mapa segue o lifetime volume, sell-out via Nielsen. O ponto marca um país em que a editora tem autor." + unknown);

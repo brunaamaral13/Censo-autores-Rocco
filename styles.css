@@ -326,8 +326,10 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .uf-hit { fill: transparent; }
 .df-dot { fill: var(--navy); stroke: #0a0a0c; stroke-width: 1.2; pointer-events: none; }
 .map-scale { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; margin-top: 10px; }
+.world-scale { margin: 0 0 10px; }
 .scale-bar { width: 120px; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #3a1018, var(--red-deep)); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.world-layout .chips { margin: 0 0 12px; }
 .chips[hidden] { display: none !important; }
 .chip {
   border: 1px solid var(--line);
@@ -361,7 +363,7 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .world { width: 100%; max-width: none; height: auto; display: block; margin: 0 auto; }
 .world-detail {
   position: absolute;
-  top: 50%;
+  top: 12px;
   right: 12px;
   bottom: auto;
   left: auto;
@@ -370,7 +372,7 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
   max-height: calc(100% - 24px);
   overflow: auto;
   margin: 0;
-  transform: translateY(-50%);
+  transform: none;
   background: rgba(14, 16, 20, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 16px;
@@ -422,13 +424,12 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .country-dot:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.8; }
 @media (max-width: 700px) {
   .world-detail {
-    top: auto;
+    top: 10px;
     right: 10px;
     left: 10px;
-    bottom: 10px;
+    bottom: auto;
     width: auto;
     max-height: 46%;
-    transform: none;
   }
 }
 .regions { display: flex; flex-direction: column; gap: 12px; }
