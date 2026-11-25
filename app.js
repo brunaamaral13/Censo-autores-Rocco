@@ -578,12 +578,17 @@
       slot.titles += 1;
       slot.keys.add(row.key || "(sem nome)");
       const name = nameOf(row);
-      const cur = slot.top.get(name) || 0;
-      slot.top.set(name, cur + row.vendas);
+      const cur = slot.top.get(name) || { sales: 0, titles: 0 };
+      cur.sales += row.vendas;
+      cur.titles += 1;
+      slot.top.set(name, cur);
     });
     Object.values(ufs).forEach((slot) => {
       slot.authors = slot.keys.size;
-      slot.ranking = [...slot.top.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt")).slice(0, 5);
+      slot.ranking = [...slot.top.entries()]
+        .sort((a, b) => b[1].sales - a[1].sales || a[0].localeCompare(b[0], "pt"))
+        .slice(0, 5)
+        .map(([name, info]) => ({ name, sales: info.sales, titles: info.titles }));
     });
     return {
       ufs,
@@ -749,7 +754,7 @@
     if (!info || !info.authors) return `<h3>${esc(title)}</h3><p>Nenhum autor brasileiro deste estado no arquivo.</p>`;
     return `<h3>${esc(title)}</h3>
       <p>${noun(info.authors, "autor", "autores")} · ${noun(info.titles, "título", "títulos")} · ${num(info.sales)} exemplares vendidos · ${pct(share(info.sales, geo.nationalSales))} das vendas nacionais</p>
-      <ol>${info.ranking.map(([name, sales]) => worldRankItem(name, sales)).join("")}</ol>`;
+      <ol>${info.ranking.map((a) => worldRankItem(a.name, a.sales, null, a.titles)).join("")}</ol>`;
   }
 
   function chipsHtml() {
@@ -998,7 +1003,7 @@
         .filter((a) => a.sales > 0)
         .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
         .slice(0, 5)
-        .map((a) => ({ name: a.name, sales: a.sales, pais: a.pais }));
+        .map((a) => ({ name: a.name, sales: a.sales, pais: a.pais, titles: a.titles }));
       return {
         id: c.id,
         name: c.name,
@@ -1040,8 +1045,11 @@
     return `<svg class="world" viewBox="0 0 960 480" role="img" aria-label="Mapa por continente dos autores internacionais">${lands}${dots}</svg>`;
   }
 
-  function worldRankItem(name, sales, place) {
-    return `<li><span>${esc(name)}${place ? `<small>${esc(place)}</small>` : ""}</span><span class="world-sales"><b>${num(sales)}</b><small>exemplares vendidos</small></span></li>`;
+  function worldRankItem(name, sales, place, titles) {
+    const meta = [];
+    if (place) meta.push(esc(place));
+    if (titles != null) meta.push(noun(titles, "ISBN", "ISBNs"));
+    return `<li><span>${esc(name)}${meta.length ? `<small>${meta.join(" · ")}</small>` : ""}</span><span class="world-sales"><b>${num(sales)}</b><small>exemplares vendidos</small></span></li>`;
   }
 
   function worldDetailHtml(pack) {
@@ -1050,7 +1058,7 @@
       const c = pack.continents.find((item) => item.id === ui.world.slice(2));
       if (!c) return "";
       const list = c.ranking.length
-        ? `<ol>${c.ranking.map((a) => worldRankItem(a.name, a.sales, a.pais)).join("")}</ol>`
+        ? `<ol>${c.ranking.map((a) => worldRankItem(a.name, a.sales, a.pais, a.titles)).join("")}</ol>`
         : "<p class='note'>Nenhum autor com venda neste continente.</p>";
       return `<h3>${esc(c.name)}</h3><p>${noun(c.authors, "autor", "autores")} · ${noun(c.countries, "país", "países")} · ${num(c.sales)} exemplares vendidos · ${pct(c.salesShare)} das vendas internacionais</p>${list}`;
     }
@@ -1062,7 +1070,7 @@
       .sort((a, b) => b.sales - a.sales || a.name.localeCompare(b.name, "pt"))
       .slice(0, 5);
     const list = top.length
-      ? `<ol>${top.map((a) => worldRankItem(a.name, a.sales)).join("")}</ol>`
+      ? `<ol>${top.map((a) => worldRankItem(a.name, a.sales, null, a.titles)).join("")}</ol>`
       : "<p class='note'>Nenhum autor com venda neste país.</p>";
     return `<h3>${esc(country.name)} · ${esc(continent ? continent.name : "")}</h3><p>${noun(country.authors, "autor", "autores")} · ${noun(country.titles, "título", "títulos")} · ${num(country.sales)} exemplares vendidos · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais</p>${list}`;
   }
