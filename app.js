@@ -756,14 +756,10 @@
     if (!ui.uf) return "";
     const map = window.BRAZIL_MAP;
     const geo = geoView();
-    const region = UF_REGION[ui.uf];
-    return Object.entries(geo.ufs)
-      .filter(([sigla, u]) => u.authors > 0 && UF_REGION[sigla] === region)
-      .sort((a, b) => b[1].sales - a[1].sales)
-      .map(([sigla, u]) => {
-        const st = map.states.find((s) => s.sigla === sigla);
-        return `<button type="button" class="chip${ui.uf === sigla ? " is-on" : ""}" data-uf="${sigla}" aria-pressed="${ui.uf === sigla}"><b>${sigla}</b>${esc(st.nome)}<small>${noun(u.authors, "autor", "autores")} · ${pct(share(u.sales, geo.nationalSales))} das vendas</small></button>`;
-      }).join("");
+    const u = geo.ufs[ui.uf];
+    if (!u) return "";
+    const st = map.states.find((s) => s.sigla === ui.uf);
+    return `<button type="button" class="chip is-on" data-uf="${ui.uf}" aria-pressed="true"><b>${ui.uf}</b>${esc(st ? st.nome : ui.uf)}<small>${noun(u.authors, "autor", "autores")} · ${pct(share(u.sales, geo.nationalSales))} das vendas</small></button>`;
   }
 
   function statesWithAuthors() {
@@ -876,9 +872,9 @@
       <div class="brazil-layout">
         <div class="map-scale brazil-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
         <div class="chips" id="ufChips"${ui.uf ? "" : " hidden"}>${chipsHtml()}</div>
-        <div class="brazil-stage">
-          ${mapSvg()}
+        <div class="brazil-stage${ui.uf ? " has-uf" : ""}">
           <div class="world-detail brazil-detail" id="ufDetail"${ui.uf ? "" : " hidden"}>${ufDetailHtml()}</div>
+          <div class="brazil-map-wrap">${mapSvg()}</div>
         </div>
         <div class="brazil-regions">
           <p class="kicker">06 · Destaques</p>
@@ -1280,6 +1276,8 @@
   }
 
   function paintMapSelection() {
+    const stage = document.querySelector(".brazil-stage");
+    if (stage) stage.classList.toggle("has-uf", !!ui.uf);
     const detail = document.getElementById("ufDetail");
     if (detail) {
       const html = ufDetailHtml();

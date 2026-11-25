@@ -323,12 +323,28 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .brazil-scale { margin: 0 0 10px; }
 .brazil-layout .chips { margin: 0 0 12px; }
 .brazil-stage {
-  position: relative;
-  width: min(100%, 720px);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+  margin: 0;
+}
+.brazil-stage.has-uf {
+  grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+}
+.brazil-map-wrap {
+  width: min(100%, 680px);
   margin: 0 auto;
+  justify-self: center;
+}
+.brazil-stage.has-uf .brazil-map-wrap {
+  width: 100%;
+  max-width: 720px;
+  margin: 0;
+  justify-self: stretch;
 }
 .brazil { width: 100%; height: auto; display: block; }
-.brazil-detail { right: 12px; top: 12px; }
 .brazil-regions {
   margin-top: 22px;
   padding-top: 18px;
@@ -449,6 +465,21 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .country-dot { fill: var(--navy); stroke: #0a0a0c; stroke-width: 1.4; cursor: pointer; }
 .country-dot.is-on, .country-dot:hover { fill: #fff; stroke: var(--navy); stroke-width: 2.4; }
 .country-dot:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.8; }
+.brazil-stage .brazil-detail {
+  position: static;
+  top: auto;
+  right: auto;
+  left: auto;
+  bottom: auto;
+  width: 100%;
+  max-height: min(70vh, 560px);
+  transform: none;
+}
+.brazil-stage:not(.has-uf) .brazil-detail { display: none !important; }
+@media (max-width: 720px) {
+  .brazil-stage.has-uf { grid-template-columns: 1fr; }
+  .brazil-stage.has-uf .brazil-map-wrap { max-width: 680px; margin: 0 auto; }
+}
 @media (max-width: 700px) {
   .world-detail {
     top: 10px;
