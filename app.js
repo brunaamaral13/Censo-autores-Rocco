@@ -1042,7 +1042,7 @@
   }
 
   function worldDetailHtml(pack) {
-    if (!ui.world) return "<p>Escolha um continente ou um país para ver autores e vendas.</p>";
+    if (!ui.world) return "";
     if (ui.world.startsWith("c:")) {
       const c = pack.continents.find((item) => item.id === ui.world.slice(2));
       if (!c) return "";
@@ -1093,8 +1093,10 @@
       `<p class="insight">${esc(lead.name)} concentra ${pct(lead.authorShare)} dos autores internacionais e ${pct(lead.salesShare)} das vendas internacionais. Há autores em ${pack.countries.length} países.</p>
       <div class="map-layout world-layout">
         <div>
-          ${worldSvg(pack)}
-          <div class="uf-detail" id="worldDetail">${worldDetailHtml(pack)}</div>
+          <div class="world-stage">
+            ${worldSvg(pack)}
+            <div class="world-detail" id="worldDetail"${ui.world ? "" : " hidden"}>${worldDetailHtml(pack)}</div>
+          </div>
           <div class="map-scale"><span>sem autores</span><i class="scale-bar"></i><span>mais vendas</span></div>
           <div class="chips" id="worldChips">${worldChipsHtml(pack)}</div>
         </div>
@@ -1251,7 +1253,11 @@
   function paintWorldSelection() {
     const pack = worldPack();
     const detail = document.getElementById("worldDetail");
-    if (detail) detail.innerHTML = worldDetailHtml(pack);
+    if (detail) {
+      const html = worldDetailHtml(pack);
+      detail.innerHTML = html;
+      detail.hidden = !html;
+    }
     const chips = document.getElementById("worldChips");
     if (chips) chips.innerHTML = worldChipsHtml(pack);
     document.querySelectorAll("#panel-world [data-world]").forEach((el) => {

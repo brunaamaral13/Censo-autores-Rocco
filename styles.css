@@ -356,7 +356,34 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .uf-detail ol { margin: 8px 0 0; padding-left: 18px; }
 .uf-detail li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
 .uf-detail li small, .region li small { display: block; color: var(--muted); font-size: 11px; font-weight: 600; }
+.world-stage { position: relative; }
 .world { width: 100%; max-width: none; height: auto; display: block; margin: 0 auto; }
+.world-detail {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  width: min(340px, calc(100% - 32px));
+  max-height: min(52%, 320px);
+  overflow: auto;
+  margin: 0;
+  background: rgba(14, 16, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 16px 36px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px) saturate(1.45);
+  -webkit-backdrop-filter: blur(16px) saturate(1.45);
+  pointer-events: auto;
+}
+.world-detail[hidden] { display: none !important; }
+.world-detail h3 { font-size: 16px; margin: 0; }
+.world-detail > p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.world-detail ol { margin: 8px 0 0; padding-left: 18px; }
+.world-detail li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+.world-detail li small { display: block; color: var(--muted); font-size: 11px; font-weight: 600; }
 .continent { stroke: rgba(0, 204, 255, 0.28); stroke-width: 1.2; cursor: pointer; }
 .continent:hover, .continent.is-on { stroke: var(--navy); stroke-width: 2.2; }
 .continent:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.6; }
@@ -364,6 +391,15 @@ body.is-drag .drop-card { border-color: var(--red); background: rgba(255, 0, 51,
 .country-dot { fill: var(--navy); stroke: #0a0a0c; stroke-width: 1.4; cursor: pointer; }
 .country-dot.is-on, .country-dot:hover { fill: #fff; stroke: var(--navy); stroke-width: 2.4; }
 .country-dot:focus-visible { outline: none; stroke: var(--navy); stroke-width: 2.8; }
+@media (max-width: 700px) {
+  .world-detail {
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    width: auto;
+    max-height: 46%;
+  }
+}
 .regions { display: flex; flex-direction: column; gap: 12px; }
 .region { border-top: 1px solid var(--line); padding-top: 10px; }
 .region-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
