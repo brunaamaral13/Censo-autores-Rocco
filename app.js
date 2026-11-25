@@ -547,8 +547,8 @@
   }
   function lifeParts() {
     return groupStats(model.authors, (a) => a.alive ? "vivo" : "morto", [
-      { id: "vivo", label: "Vivos", color: "#7ee0ff" },
-      { id: "morto", label: "Falecidos", color: "#ff4d57" }
+      { id: "vivo", label: "Vivos", color: "#00ccff" },
+      { id: "morto", label: "Falecidos", color: "#ff0033" }
     ]);
   }
   function ageParts() {
@@ -778,10 +778,10 @@
     const yHead = pack.total ? pack.headSales / pack.total : 0;
     return `<svg class="abc-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Curva ABC de autores por lifetime volume, sell-out via Nielsen">
       <line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(1)}" stroke="#31445f" stroke-dasharray="4 4"/>
-      <polyline points="${line}" fill="none" stroke="#7ee0ff" stroke-width="2.5"/>
-      <line x1="${X(xHead)}" y1="${Y(0)}" x2="${X(xHead)}" y2="${Y(yHead)}" stroke="#ff4d57" stroke-width="1.5"/>
-      <line x1="${X(0)}" y1="${Y(yHead)}" x2="${X(xHead)}" y2="${Y(yHead)}" stroke="#ff4d57" stroke-width="1.5"/>
-      <circle cx="${X(xHead)}" cy="${Y(yHead)}" r="4.5" fill="#ff4d57"/>
+      <polyline points="${line}" fill="none" stroke="#00ccff" stroke-width="2.5"/>
+      <line x1="${X(xHead)}" y1="${Y(0)}" x2="${X(xHead)}" y2="${Y(yHead)}" stroke="#ff0033" stroke-width="1.5"/>
+      <line x1="${X(0)}" y1="${Y(yHead)}" x2="${X(xHead)}" y2="${Y(yHead)}" stroke="#ff0033" stroke-width="1.5"/>
+      <circle cx="${X(xHead)}" cy="${Y(yHead)}" r="4.5" fill="#ff0033"/>
       <text x="${X(0)}" y="${h - 12}">0%</text>
       <text x="${X(xHead)}" y="${h - 12}" text-anchor="middle">20%</text>
       <text x="${X(1)}" y="${h - 12}" text-anchor="end">100% dos autores</text>
@@ -1028,7 +1028,7 @@
     const maxDot = Math.max(...pack.countries.map((c) => c.sales), 0);
     const lands = pack.continents.map((c) => {
       const on = ui.world === "c:" + c.id;
-      const fill = c.authors ? heat(c.sales, maxLand) : "#1c283c";
+      const fill = c.authors ? heat(c.sales, maxLand) : "var(--empty)";
       const [x, y] = projectWorld(c.label[0], c.label[1]);
       return `<path class="continent${on ? " is-on" : ""}" data-world="c:${c.id}" tabindex="0" role="button" aria-label="${esc(c.name)}" aria-pressed="${on}" fill="${fill}" d="${c.rings.map(worldRing).join(" ")}"></path><text class="world-label" text-anchor="middle" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${esc(c.short)}</text>`;
     }).join("");
@@ -1064,8 +1064,21 @@
     return `<h3>${esc(country.name)} · ${esc(continent ? continent.name : "")}</h3><p>${noun(country.authors, "autor", "autores")} · ${noun(country.titles, "título", "títulos")} · ${num(country.sales)} exemplares vendidos · ${pct(share(country.sales, pack.intlSales))} das vendas internacionais</p>${list}`;
   }
 
+  function worldChipCountries(pack) {
+    if (!ui.world) return pack.countries;
+    if (ui.world.startsWith("c:")) {
+      const id = ui.world.slice(2);
+      return pack.countries.filter((c) => c.continent === id);
+    }
+    const country = pack.countries.find((item) => item.key === ui.world.slice(2));
+    if (!country) return pack.countries;
+    return pack.countries.filter((c) => c.continent === country.continent);
+  }
+
   function worldChipsHtml(pack) {
-    return pack.countries.map((c) => {
+    const list = worldChipCountries(pack);
+    if (!list.length) return `<p class="note">Nenhum país com autor neste continente.</p>`;
+    return list.map((c) => {
       const id = "p:" + c.key;
       const on = ui.world === id;
       return `<button type="button" class="chip${on ? " is-on" : ""}" data-world="${esc(id)}" aria-pressed="${on}"><b>${esc(c.name)}</b><small>${noun(c.authors, "autor", "autores")} · ${pct(share(c.sales, pack.intlSales))} das vendas</small></button>`;
@@ -1237,13 +1250,15 @@
 
   function paintWorldSelection() {
     const pack = worldPack();
-    document.querySelectorAll("[data-world]").forEach((el) => {
+    const detail = document.getElementById("worldDetail");
+    if (detail) detail.innerHTML = worldDetailHtml(pack);
+    const chips = document.getElementById("worldChips");
+    if (chips) chips.innerHTML = worldChipsHtml(pack);
+    document.querySelectorAll("#panel-world [data-world]").forEach((el) => {
       const on = el.getAttribute("data-world") === ui.world;
       el.classList.toggle("is-on", on);
       if (el.hasAttribute("aria-pressed")) el.setAttribute("aria-pressed", String(on));
     });
-    const detail = document.getElementById("worldDetail");
-    if (detail) detail.innerHTML = worldDetailHtml(pack);
   }
 
   function paintMapSelection() {
@@ -1282,6 +1297,11 @@
     const y = Math.min(e.clientY + 16, window.innerHeight - 220);
     tip.style.left = x + "px";
     tip.style.top = y + "px";
+    const rect = tip.getBoundingClientRect();
+    const w = rect.width || width;
+    const h = rect.height || 48;
+    tip.style.setProperty("--lx", Math.round(((e.clientX - x) / w) * 100) + "%");
+    tip.style.setProperty("--ly", Math.round(((e.clientY - y) / h) * 100) + "%");
   }
 
   function onMove(e) {
@@ -1477,4 +1497,46 @@
   });
 
   dropHint.textContent = "A visualização abre somente depois de importar o CSV.";
+
+  if (new URLSearchParams(location.search).has("preview")) {
+    fetch("Censo_Autores_Rocco_Atualizado_Expandido_48.csv")
+      .then((r) => {
+        if (!r.ok) throw new Error("CSV de preview não encontrado.");
+        return r.text();
+      })
+      .then((text) => loadText(text, "Censo_Autores_Rocco_Atualizado_Expandido_48.csv"))
+      .catch((err) => { dropHint.textContent = err.message || "Falha no preview."; });
+  }
+
+  const glass = document.getElementById("glass");
+  let glassX = 0;
+  let glassY = 0;
+  let aimX = 0;
+  let aimY = 0;
+  let glassLive = false;
+  const stillGlass = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.addEventListener("pointermove", (e) => {
+    aimX = e.clientX;
+    aimY = e.clientY;
+    if (!glassLive) {
+      glassX = aimX;
+      glassY = aimY;
+      glassLive = true;
+    }
+    glass.hidden = false;
+  });
+  document.addEventListener("pointerleave", () => {
+    glassLive = false;
+    glass.hidden = true;
+  });
+  function glideGlass() {
+    if (glassLive) {
+      const pace = stillGlass ? 1 : 0.22;
+      glassX += (aimX - glassX) * pace;
+      glassY += (aimY - glassY) * pace;
+      glass.style.transform = "translate(" + glassX.toFixed(1) + "px," + glassY.toFixed(1) + "px)";
+    }
+    requestAnimationFrame(glideGlass);
+  }
+  glideGlass();
 })();
